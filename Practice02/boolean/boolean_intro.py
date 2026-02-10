@@ -15,6 +15,7 @@ print(bool({}))
 #3
 print(bool("Hello")) #True
 print(bool(1))
+print(bool(1))
 
 #4
 a="Python is amazing"
