@@ -6,6 +6,11 @@ print(min(5, 10, 2))
 print(max(5, 10, 2))
 print(abs(-7))
 
+import math
+d=float(input("Input degree:"))
+r=d*math.pi/180
+print("Output radian:",round(r,6))
+
 #2
 print(round(3.14159, 2))
 print(pow(2, 3))
