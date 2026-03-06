@@ -6,10 +6,16 @@ print(min(5, 10, 2))
 print(max(5, 10, 2))
 print(abs(-7))
 
+<<<<<<< HEAD
 import math
 d=float(input("Input degree:"))
 r=d*math.pi/180
 print("Output radian:",round(r,6))
+=======
+d=float(input("Input degree:"))
+r=d*math.pi/180
+print("Output radian:",r)
+>>>>>>> 1249109 (Add Practice5 - Python RegEx and receipt parsing examples)
 
 #2
 print(round(3.14159, 2))
@@ -36,10 +42,14 @@ print(math.cos(0))
 print(math.pi)
 print(math.e)
 
+<<<<<<< HEAD
 base = float(input("Length of base: "))
 height = float(input("Height of parallelogram: "))
 area = base * height
 print("Expected Output:", area)
+=======
+
+>>>>>>> 1249109 (Add Practice5 - Python RegEx and receipt parsing examples)
 
 #5
 print(random.random())        
