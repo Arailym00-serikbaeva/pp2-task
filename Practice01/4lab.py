@@ -6,7 +6,7 @@ for i in range(1,n+1):
 """402
 def even_numbers(n):
     for i in range(0, n + 1, 2):
-        yield i
+        yield i  #yield не істейді? return сияқты мән қайтарады,бірақ функцияны жабып тастамайды.
 n = int(input().strip())
 first = True
 for num in even_numbers(n):
@@ -82,6 +82,7 @@ for prime in prime_generator(n):
     print(prime, end="")
     first = False"""
 
+
 """409
 n=int(input())
 for i in range(0,n+1):
@@ -107,23 +108,19 @@ def patch_json(source, patch):
         else:
             source[key] = val
     return source
-
-
 source_json = json.loads(sys.stdin.readline())
 patch_json_obj = json.loads(sys.stdin.readline())
-
 result = patch_json(source_json, patch_json_obj)
-
 print(json.dumps(result, sort_keys=True, separators=(',', ':')))"""
 
 """412
-import json
-import sys
-def deep_diff(old, new, path=""):
-    diffs = []
-    old_keys = set(old.keys()) if isinstance(old, dict) else set()
+import json          #json JSON жолдарын Python dict-ке айналдыру үшін.
+import sys           #stdin арқылы енгізуді оқу үшін (онлайн judge форматында).
+def deep_diff(old, new, path=""):           #old → ескі JSON  new → жаңа JSON path → қай жерде тұрғанын көрсету үшін (мысалы: user.name)
+    diffs = []                 #Барлық табылған өзгерістер осы тізімге жиналады.
+    old_keys = set(old.keys()) if isinstance(old, dict) else set()     #Егер old dict болса → оның кілттерін аламыз, Егер dict болмаса → бос set береміз
     new_keys = set(new.keys()) if isinstance(new, dict) else set()
-    all_keys = old_keys.union(new_keys)
+    all_keys = old_keys.union(new_keys)      #Барлық кілттерді біріктіреміз (қосылған + өшірілген + өзгерген)
     for key in sorted(all_keys):
         sub_path = f"{path}.{key}" if path else key
         old_val = old.get(key) if isinstance(old, dict) else None
@@ -172,11 +169,9 @@ def query_json(data, query):
     except (KeyError, IndexError, TypeError):
         return "NOT_FOUND"
 
-# Енгізу
 data = json.loads(sys.stdin.readline())
 q_count = int(sys.stdin.readline())
 queries = [sys.stdin.readline().strip() for _ in range(q_count)]
-# Шешу
 for q in queries:
     print(query_json(data, q))"""
 
@@ -237,6 +232,41 @@ print(diff_days)"""
 
 
 """415
+import sys
+from datetime import datetime, timedelta, timezone
+
+def parse_line(s):
+    s = s.strip()
+    date_part, tz_part = s.split()
+    y, m, d = map(int, date_part.split("-"))
+    sign = 1 if tz_part[3] == '+' else -1
+    hh = int(tz_part[4:6])
+    mm = int(tz_part[7:9])
+    tz = timezone(sign * timedelta(hours=hh, minutes=mm))
+    local_midnight = datetime(y, m, d, 0, 0, 0, tzinfo=tz)
+    return y, m, d, tz, local_midnight.astimezone(timezone.utc)
+
+def is_leap(y):
+    return y % 400 == 0 or (y % 4 == 0 and y % 100 != 0)
+
+def bday_utc(bm, bd, birth_tz, year):
+    if bm == 2 and bd == 29 and not is_leap(year):
+        bd = 28
+    return datetime(year, bm, bd, 0, 0, 0, tzinfo=birth_tz).astimezone(timezone.utc)
+
+lines = sys.stdin.read().strip().splitlines()
+_, bm, bd, birth_tz, _ = parse_line(lines[0])
+cy, _, _, _, curr_utc = parse_line(lines[1])
+
+cand = bday_utc(bm, bd, birth_tz, cy)
+if cand < curr_utc:
+    cand = bday_utc(bm, bd, birth_tz, cy + 1)
+
+delta = int((cand - curr_utc).total_seconds())
+if delta <= 0:
+    print(0)
+else:
+    print((delta + 86400 - 1) // 86400)
 """
 
 """416
@@ -298,6 +328,49 @@ y = 0.0
 print(f"{x:.10f} {y:.10f}")"""
 
 """419
+
+r = float(input())
+x1, y1 = map(float, input().split())
+x2, y2 = map(float, input().split())
+
+def dist(x1, y1, x2, y2):
+    return math.hypot(x1 - x2, y1 - y2)
+
+OA = math.hypot(x1, y1)
+OB = math.hypot(x2, y2)
+AB = dist(x1, y1, x2, y2)
+
+if OA < r or OB < r:
+    print("0.0000000000")
+    exit()
+dx = x2 - x1
+dy = y2 - y1
+
+t = -(x1 * dx + y1 * dy) / (dx * dx + dy * dy)
+
+if 0 <= t <= 1:
+ 
+    px = x1 + t * dx
+    py = y1 + t * dy
+    distance_to_segment = math.hypot(px, py)
+else:
+    distance_to_segment = min(OA, OB)
+if distance_to_segment >= r:
+    print(f"{AB:.10f}")
+else:
+ 
+    tangentA = math.sqrt(OA**2 - r**2)
+    tangentB = math.sqrt(OB**2 - r**2)
+
+    angleAOB = math.acos((OA**2 + OB**2 - AB**2) / (2 * OA * OB))
+    angleA = math.acos(r / OA)
+    angleB = math.acos(r / OB)
+
+    theta = angleAOB - angleA - angleB
+    arc = r * theta
+
+    answer = tangentA + tangentB + arc
+    print(f"{answer:.10f}")
 """
 
 """420

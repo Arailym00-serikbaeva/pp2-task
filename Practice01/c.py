@@ -1,38 +1,17 @@
-#class St:
-#    def __init__(self):
-#        self.txt=""
-#    def getSt(self):
-#        self.txt=input()
-#    def printSt(self):
-#        print(self.txt.upper())
-#obj=St()
-#obj.getSt()
-#obj.printSt()
-
-
-
-"""import math
-class Point:
-    def __init__(self,x,y):
-        self.x=x
-        self.y=y
-    def show(self):
-        print(f"({self.x}, {self.y})")
-    def move(self,new_x,new_y):
-        self.x=new_x
-        self.y=new_y
-    def dist(self,other):
-        return math.sqrt((self.x-other.x)**2+(self.y-other.y)**2)
-x1,y1=map(int,input().split())
-x2,y2=map(int,input().split())
-x3,y3=map(int,input().split())
-p1=Point(x1,y1)
-p1.show()
-p1.move(x2,y2)
-p1.show()
-p2=Point(x3,y3)
-distance=p1.dist(p2)
-print(f"{distance:.2f}")"""
-
+a=input()
+n=0
+for i in a:
+    if i=='1' or i=='2' or i=='3' or i=='4' or i=='5' or i=='6' or i=='7' or i=='8' or i=='9' or i=='0':
+        print(i,end=" ")
+    
+a=input()
+n=0
+for i in a:
+    if i=='1' or i=='2' or i=='3' or i=='4' or i=='5' or i=='6' or i=='7' or i=='8' or i=='9' or i=='0':
+        n+=1
+if n!=0:
+    print("Yes")
+else:
+    print("No")
 
 
