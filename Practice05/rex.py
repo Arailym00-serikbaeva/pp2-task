@@ -54,8 +54,8 @@ print(r)
 
 #7
 import re
-s = input()
-r = re.sub("[_]", "", s)
+t = input()
+r = re.sub(r'_([a-z])', lambda x: x.group(1).upper(), t)
 print(r)
 
 #8
