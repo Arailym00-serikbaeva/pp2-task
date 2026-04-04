@@ -41,7 +41,6 @@ def search():
     conn = get_connection()
     cur = conn.cursor()
 
-    # Ескер: функция output атаулары out_name, out_phone
     cur.execute("SELECT * FROM search_contacts(%s)", (word,))
     rows = cur.fetchall()
 
