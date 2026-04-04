@@ -41,11 +41,15 @@ def search():
     conn = get_connection()
     cur = conn.cursor()
 
+    # Ескер: функция output атаулары out_name, out_phone
     cur.execute("SELECT * FROM search_contacts(%s)", (word,))
     rows = cur.fetchall()
 
-    for row in rows:
-        print(row)
+    if rows:
+        for row in rows:
+            print(f"Аты: {row[0]}, Телефон: {row[1]}")
+    else:
+        print("Табылған жоқ!")
 
     cur.close()
     conn.close()
