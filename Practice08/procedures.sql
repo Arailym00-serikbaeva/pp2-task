@@ -29,7 +29,7 @@ DECLARE
     i INT;
 BEGIN
     FOR i IN 1..array_length(p_names, 1) LOOP
-        
+    
         IF p_phones[i] ~ '^[0-9]{10,15}$' THEN
             CALL upsert_contact(p_names[i], p_phones[i]);
         ELSE
