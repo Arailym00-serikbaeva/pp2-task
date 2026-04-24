@@ -1,88 +1,144 @@
 import pygame
 import random
+import sys
+import os
 
-#INIT 
 pygame.init()
 
-WIDTH, HEIGHT = 400, 600
+WIDTH, HEIGHT = 500, 700
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Racer with Coins")
+pygame.display.set_caption("Racer")
 
 clock = pygame.time.Clock()
 
-#COLORS
+GRAY = (150, 150, 150)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+YELLOW = (255, 215, 0)
 
-#LOAD IMAGES
-player_img = pygame.image.load("player.png")
-player_img = pygame.transform.scale(player_img, (60, 60))
+BASE_DIR = os.path.dirname(__file__)
+img_path = os.path.join(BASE_DIR, "car.png")
 
-coin_img = pygame.image.load("coin.png")
-coin_img = pygame.transform.scale(coin_img, (30, 30))
+base_car = pygame.image.load(img_path).convert_alpha()
+base_car = pygame.transform.scale(base_car, (60, 90))
 
-#PLAYER
-player_rect = player_img.get_rect(center=(WIDTH // 2, HEIGHT - 80))
-player_speed = 6
+def tint_image(image, color):
+    tinted = image.copy()
+    tinted.fill(color, special_flags=pygame.BLEND_RGB_MULT)
+    return tinted
 
-#COINS
+colors = [
+    (255, 0, 0),
+    (0, 200, 0),
+    (0, 0, 255),
+    (255, 0, 255),
+    (255, 255, 255)
+]
+
+player_img = tint_image(base_car, (0, 150, 255))
+player = player_img.get_rect(center=(250, 600))
+
+lanes = [170, 250, 330]
+
+enemies = []
+enemy_speed = 3
+
+def spawn_enemy():
+    lane = random.choice(lanes)
+    color = random.choice(colors)
+    img = tint_image(base_car, color)
+    rect = img.get_rect(center=(lane, -100))
+    enemies.append({"img": img, "rect": rect})
+
 coins = []
-coin_count = 0
+score = 0
+font = pygame.font.SysFont(None, 40)
 
 def spawn_coin():
-    """Жоғарыдан кездейсоқ coin шығару"""
-    x = random.randint(20, WIDTH - 20)
-    coin_rect = coin_img.get_rect(center=(x, -20))
-    coins.append(coin_rect)
+    x = random.choice(lanes)
+    coins.append(pygame.Rect(x, -30, 30, 30))
 
-#FONT
-font = pygame.font.SysFont("Arial", 20)
+road_offset = 0
 
-#GAME LOOP
+def draw_road():
+    global road_offset
+
+    screen.fill((200, 200, 200))
+    pygame.draw.rect(screen, GRAY, (100, 0, 300, HEIGHT))
+
+    road_offset += 5
+    if road_offset >= 40:
+        road_offset = 0
+
+    for y in range(-40, HEIGHT, 40):
+        pygame.draw.rect(screen, WHITE, (200, y + road_offset, 10, 25))
+        pygame.draw.rect(screen, WHITE, (290, y + road_offset, 10, 25))
+
+frame = 0
 running = True
-while running:
-    screen.fill(BLACK)
 
-    #EVENTS
+while running:
+    clock.tick(60)
+    frame += 1
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-    #CONTROLS
     keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:
+        player.x -= 7
+    if keys[pygame.K_RIGHT]:
+        player.x += 7
 
-    if keys[pygame.K_LEFT] and player_rect.left > 0:
-        player_rect.x -= player_speed
+    if player.left < 100:
+        player.left = 100
+    if player.right > 400:
+        player.right = 400
 
-    if keys[pygame.K_RIGHT] and player_rect.right < WIDTH:
-        player_rect.x += player_speed
+    if frame % 80 == 0:
+        spawn_enemy()
 
-    #COIN LOGIC
-    if random.randint(1, 40) == 1:
+    if frame % 140 == 0:
         spawn_coin()
 
+    for enemy in enemies[:]:
+        enemy["rect"].y += enemy_speed
+
+        if enemy["rect"].y > HEIGHT:
+            enemies.remove(enemy)
+
+        if player.colliderect(enemy["rect"]):
+            pygame.quit()
+            sys.exit()
+
     for coin in coins[:]:
-        coin.y += 5  
+        coin.y += enemy_speed
 
-
-        if coin.colliderect(player_rect):
-            coins.remove(coin)
-            coin_count += 1
-
-        elif coin.top > HEIGHT:
+        if coin.y > HEIGHT:
             coins.remove(coin)
 
-    #DRAW
-    screen.blit(player_img, player_rect)
+        if player.colliderect(coin):
+            coins.remove(coin)
+            score += 1
+
+    if frame % 400 == 0:
+        enemy_speed += 0.5
+
+    draw_road()
+
+    screen.blit(player_img, player)
+
+    for enemy in enemies:
+        screen.blit(enemy["img"], enemy["rect"])
 
     for coin in coins:
-        screen.blit(coin_img, coin)
+        pygame.draw.circle(screen, YELLOW, coin.center, 12)
 
-    #COUNTER
-    text = font.render(f"Coins: {coin_count}", True, WHITE)
-    screen.blit(text, (WIDTH - 130, 10))
+    text = font.render(f"Coins: {score}", True, BLACK)
+    screen.blit(text, (WIDTH - 180, 15))
 
     pygame.display.flip()
-    clock.tick(60)
 
 pygame.quit()
+sys.exit()
