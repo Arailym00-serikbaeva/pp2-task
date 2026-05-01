@@ -76,7 +76,7 @@ def main():
     font_status = pygame.font.SysFont("Arial", 22)
     font_info   = pygame.font.SysFont("Arial", 18)
 
-    player = MusicPlayer(music_folder="music")
+    player = MusicPlayer(music_folder=music_folder)
 
     running = True
     while running:
