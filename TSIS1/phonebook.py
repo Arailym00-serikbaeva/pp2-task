@@ -29,13 +29,13 @@ def view_contacts():
             print(f"\n--- Бет: {page + 1} ---")
             for r in rows:
                 print(f"ID: {r[0]} | Аты: {r[1]} {r[2]} | Email: {r[3]} | Күні: {r[4]} | Топ: {r[5]}")
-            
             cmd = input("\n[n] Келесі, [p] Алдыңғы, [q] Артқа: ").lower()
             if cmd == 'n': page += 1
             elif cmd == 'p' and page > 0: page -= 1
             elif cmd == 'q': break
     finally:
         cur.close(); conn.close()
+
 
 # 2. Іздеу
 def search_ui():
@@ -55,6 +55,8 @@ def search_ui():
     finally:
         cur.close(); conn.close()
 
+
+
 # 3. Телефон қосу (Procedure)
 def add_phone_ui():
     name = input("Контакт аты: "); num = input("Телефон: "); t = input("Тип: ")
@@ -64,6 +66,8 @@ def add_phone_ui():
         conn.commit(); print("Телефон сәтті қосылды.")
     except Exception as e: print(f"Қате: {e}")
     finally: cur.close(); conn.close()
+
+
 
 # 4. Топқа жылжыту (Procedure)
 def move_group_ui():
@@ -75,12 +79,13 @@ def move_group_ui():
     except Exception as e: print(f"Қате: {e}")
     finally: cur.close(); conn.close()
 
+
 # 5. JSON Экспорт
 def export_json():
     conn = connect(); cur = conn.cursor()
     try:
         cur.execute("""
-            SELECT c.first_name, c.last_name, c.email, c.birthday, g.name, 
+            SELECT c.first_name, c.last_name, c.email, c.birthday, g.name,
                    json_agg(json_build_object('phone', p.phone, 'type', p.type)) FILTER (WHERE p.phone IS NOT NULL)
             FROM contacts c
             LEFT JOIN groups g ON c.group_id = g.id
@@ -94,6 +99,7 @@ def export_json():
         print("JSON файлы жасалды.")
     finally: cur.close(); conn.close()
 
+
 # 6. JSON Импорт
 def import_json():
     conn = connect(); cur = conn.cursor()
@@ -103,8 +109,7 @@ def import_json():
             for item in data:
                 cur.execute("INSERT INTO groups (name) VALUES (%s) ON CONFLICT (name) DO NOTHING", (item['group'],))
                 cur.execute("SELECT id FROM groups WHERE name = %s", (item['group'],))
-                g_id = cur.fetchone()[0]
-                
+                g_id = cur.fetchone()[0]              
                 parts = item['name'].split(); f_n = parts[0]; l_n = parts[1] if len(parts) > 1 else ""
                 cur.execute("INSERT INTO contacts (first_name, last_name, email, birthday, group_id) VALUES (%s, %s, %s, %s, %s) RETURNING id",
                             (f_n, l_n, item['email'], item['birthday'], g_id))
@@ -114,6 +119,7 @@ def import_json():
         conn.commit(); print("JSON сәтті жүктелді.")
     except Exception as e: print(f"Қате: {e}")
     finally: cur.close(); conn.close()
+
 
 # 7. CSV Импорт
 def import_csv():

@@ -1,58 +1,56 @@
 import pygame
 import random
-import db
+import db  # Деректер қорымен жұмыс істейтін файл
 
-# Константалар: блоктың өлшемі және ойын алаңының ені мен биіктігі
-BLOCK = 20
-WIDTH = 600
+BLOCK = 20        
+WIDTH = 600       
 GAME_HEIGHT = 600 
 
 class Game:
     def __init__(self, username, settings):
-        """Ойынды бастапқы іске қосу (Инициализация)"""
         self.username = username
         self.settings = settings
-        # Базадан ойыншының ID-ін және жеке рекордын (PB) алу
+        # Деректер қорынан ойыншының ID-ін және ең жақсы нәтижесін (Personal Best) алу
         self.player_id = db.get_or_create_player(username)
         self.pb = db.get_personal_best(self.player_id)
-        self.reset() # Ойынның барлық мәндерін бастапқы күйге келтіру
+        self.reset() # Ойынды бастапқы күйге келтіру
 
     def reset(self):
-        """Ойынды басынан бастау (Жылан өлгенде немесе жаңадан бастағанда)"""
-        self.snake = [[300, 300], [280, 300], [260, 300]] # Жыланның бастапқы денесі
+        # Жыланның бастапқы денесі (3 блок)
+        self.snake = [[300, 300], [280, 300], [260, 300]]
         self.direction = "RIGHT" # Бастапқы бағыты
         self.score = 0           # Ұпай
         self.level = 1           # Деңгей
         self.base_speed = 7      # Негізгі жылдамдық
         self.speed_mod = 0       # Бонустардан келетін жылдамдық өзгерісі
         self.obstacles = []      # Кедергілер тізімі
-        self.food = self.spawn_item("normal")  # Кәдімгі тамақ
-        self.poison = self.spawn_item("poison") # У (жыланды қысқартады)
-        self.powerup = None      # Арнайы бонус (алғашқыда жоқ)
+        self.food = self.spawn_item("normal")  # Кәдімгі тамақ шығару
+        self.poison = self.spawn_item("poison") # У шығару
+        self.powerup = None      # Белсенді бонус (басында жоқ)
         
-        # Бонустың шығу уақытын белгілеу (5-10 секунд аралығында)
+        # Келесі бонус 5-10 секунд аралығында шығуы үшін таймер қою
         self.pu_spawn_time = pygame.time.get_ticks() + random.randint(5000, 10000)
-        self.active_pu_end = 0   # Бонустың әсері бітетін уақыт
-        self.shield_active = False # Қорғаныс қалқаны қосулы ма?
+        self.active_pu_end = 0   # Бонус әсерінің аяқталу уақыты
+        self.shield_active = False # Қалқан белсенділігі
 
+    # Ойын алаңында заттарды (тамақ, у, бонус) кездейсоқ шығару функциясы
     def spawn_item(self, itype):
-        """Экранның кездейсоқ жерінен тамақ, у немесе бонус шығару"""
         while True:
             x = random.randrange(0, WIDTH, BLOCK)
             y = random.randrange(0, GAME_HEIGHT, BLOCK)
             pos = [x, y]
             
-            # Элемент жыланның үстіне немесе кедергіге түспеуі керек
+            # Егер шыққан орын жыланның үсті немесе кедергі болмаса ғана қабылдау
             if pos not in self.snake and pos not in self.obstacles:
                 if itype == "normal":
-                    # Кәдімгі тамақ: 70% қызыл (1 ұпай), 20% көк (3 ұпай), 10% алтын (5 ұпай)
                     chance = random.random()
+                    # Түрлі тамақтардың пайда болу ықтималдығы мен ұпайы
                     if chance < 0.7:
-                        color, val, timer = (255, 0, 0), 1, 7000
+                        color, val, timer = (255, 0, 0), 1, 7000   # Қызыл (қарапайым)
                     elif chance < 0.9:
-                        color, val, timer = (0, 100, 255), 3, 5000
+                        color, val, timer = (0, 100, 255), 3, 5000 # Көк (сирек)
                     else:
-                        color, val, timer = (255, 215, 0), 5, 3000
+                        color, val, timer = (255, 215, 0), 5, 3000 # Алтын (өте сирек)
                     
                     return {
                         "pos": pos, 
@@ -62,23 +60,21 @@ class Game:
                     }
                 
                 if itype == "poison":
-                    # Удың орнын қайтару
-                    return {"pos": pos, "color": (138, 43, 226)}
+                    return {"pos": pos, "color": (138, 43, 226)} # Күлгін түсті у
                 
                 if itype == "pu":
-                    # Кездейсоқ бонус түрін таңдау: жылдамдық, баяулату немесе қалқан
+                    # Бонустардың түрі: жылдамдық, баяулату, қалқан
                     kind = random.choice(["speed", "slow", "shield"])
                     return {
                         "pos": pos, 
                         "kind": kind, 
-                        "timer": pygame.time.get_ticks() + 8000 # Бонус 8 секунд тұрады
+                        "timer": pygame.time.get_ticks() + 8000 # 8 секундтан кейін жоғалады
                     }
 
     def update(self):
-        """Ойынның әр кадр сайынғы өзгерістері (Логика)"""
         now = pygame.time.get_ticks()
 
-        # 1. Таймерлерді тексеру: тамақ немесе бонус ескірсе, жаңасын шығару
+        # 1. Таймерлерді тексеру (тамақ пен бонустардың уақыты бітті ме)
         if now > self.food["timer"]:
             self.food = self.spawn_item("normal")
         
@@ -86,40 +82,40 @@ class Game:
             self.powerup = None
             self.pu_spawn_time = now + random.randint(5000, 10000)
 
-        # Егер бонус жоқ болса және уақыты келсе — жаңа бонус шығару
+        # Жаңа бонус шығаратын уақыт келді ме
         if not self.powerup and now > self.pu_spawn_time:
             self.powerup = self.spawn_item("pu")
 
-        # Бонустың әсер ету уақыты бітсе, жылдамдықты қалпына келтіру
+        # Бонус әсерінің (жылдамдық/баяулық) уақытын тексеру
         if self.active_pu_end > 0 and now > self.active_pu_end:
             self.speed_mod = 0
             self.active_pu_end = 0
 
-        # 2. Жыланның басын қозғалту
+        # 2. Жыланның қозғалысы (басын жаңа блокқа жылжыту)
         head = self.snake[0].copy()
         if self.direction == "UP": head[1] -= BLOCK
         elif self.direction == "DOWN": head[1] += BLOCK
         elif self.direction == "LEFT": head[0] -= BLOCK
         elif self.direction == "RIGHT": head[0] += BLOCK
 
-        # 3. Қақтығыстарды тексеру (Collision)
+        # 3. Қақтығыстарды (коллизия) тексеру
+        # Шетке тию, өзіне тию немесе кедергіге тию
         if (head[0] < 0 or head[0] >= WIDTH or head[1] < 0 or head[1] >= GAME_HEIGHT or 
             head in self.snake or head in self.obstacles):
             
-            # Егер қалқан болса, жылан өлмейді, тек қалқан жоғалады
+            # Егер қалқан белсенді болса, өлмейді, тек қалқаны өшеді
             if self.shield_active:
                 self.shield_active = False
                 return "MOVE" 
             
-            # Қалқан болмаса — Ойын бітті, нәтижені базаға сақтау
+            # Ойын аяқталса, нәтижені ДҚ-ға сақтау
             db.save_game_session(self.player_id, self.score, self.level)
             return "GAMEOVER"
 
-        # Жыланның жаңа басын тізімнің басына қосу
-        self.snake.insert(0, head)
+        self.snake.insert(0, head) # Жаңа басты қосу
 
-        # 4. Бірдеңе жегенін тексеру
-        # Кәдімгі тамақ жесе:
+        # 4. Нәрселерді жеуді тексеру
+        # Тамақ жесе
         if head == self.food["pos"]:
             self.score += self.food["val"]
             # Әр 5 ұпай сайын деңгейді көтеру және кедергілер қосу
@@ -129,48 +125,46 @@ class Game:
             self.food = self.spawn_item("normal")
             return "EAT"
 
-        # У жеп қойса:
+        # У жесе (жылан қысқарады)
         elif head == self.poison["pos"]:
             if len(self.snake) > 2:
-                self.snake.pop(); self.snake.pop() # Жылан 2 блокқа қысқарады
+                self.snake.pop(); self.snake.pop() # Екі блокқа қысқарту
                 self.poison = self.spawn_item("poison")
                 return "POISON"
             else: 
-                # Егер жылан тым қысқа болса және у жесе — өледі
                 db.save_game_session(self.player_id, self.score, self.level)
                 return "GAMEOVER"
 
-        # Бонус (Power-up) жесе:
+        # Бонус жесе
         elif self.powerup and head == self.powerup["pos"]:
             kind = self.powerup["kind"]
             if kind == "speed":
-                self.speed_mod = 5 # Жылдамдықты арттыру
-                self.active_pu_end = now + 5000 # 5 секундқа
+                self.speed_mod = 5
+                self.active_pu_end = now + 5000 # 5 секундқа жылдамдайды
             elif kind == "slow":
-                self.speed_mod = -3 # Баяулату
-                self.active_pu_end = now + 5000
+                self.speed_mod = -3
+                self.active_pu_end = now + 5000 # 5 секундқа баяулайды
             elif kind == "shield":
-                self.shield_active = True # Қалқанды іске қосу
+                self.shield_active = True
             
             self.powerup = None
             self.pu_spawn_time = now + random.randint(5000, 10000)
             return "POWERUP"
 
         else:
-            # Егер ештеңе жемесе, жыланның құйрығын өшіру (қозғалыс эффектісі)
-            self.snake.pop()
+            self.snake.pop() # Ештеңе жемесе, құйрығын алып тастау (қозғалыс эффектісі)
 
         return "MOVE"
 
+    # Кедергілерді (қабырғаларды) жасау функциясы
     def generate_obstacles(self):
-        """3-деңгейден бастап экранда кедергілер (тастар) пайда болады"""
         self.obstacles = []
-        if self.level >= 3:
+        if self.level >= 3: # Кедергілер тек 3-деңгейден бастап пайда болады
             for _ in range(self.level + 2):
                 while True:
                     x = random.randrange(0, WIDTH, BLOCK)
                     y = random.randrange(0, GAME_HEIGHT, BLOCK)
-                    # Кедергі жыланның басына тым жақын түспеуі керек
+                    # Жыланның басынан кемінде 3 блок қашықтықта жасау (тұйыққа тірелмеу үшін)
                     dist = abs(x - self.snake[0][0]) + abs(y - self.snake[0][1])
                     if [x, y] not in self.snake and dist > BLOCK * 3:
                         self.obstacles.append([x, y])

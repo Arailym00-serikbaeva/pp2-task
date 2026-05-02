@@ -8,7 +8,7 @@ pygame.init()
 # Window size
 WIDTH, HEIGHT = 1100, 820
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Gemini Paint Studio - Professional")
+pygame.display.set_caption("Paint Studio - Professional")
 
 # 12 Colors
 PALETTE = [
